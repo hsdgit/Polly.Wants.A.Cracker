@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Polly.Wants.A.Cracker", "Polly.Wants.A.Cracker\Polly.Wants.A.Cracker.csproj", "{F1911D65-3F4C-455C-BA5D-EE146F92E975}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Polly.Wants.A.Cracker.WebApi", "Polly.Wants.A.Cracker.WebApi\Polly.Wants.A.Cracker.WebApi.csproj", "{1E84B27D-1A80-42D1-AB40-B80F23C1B8A7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F1911D65-3F4C-455C-BA5D-EE146F92E975}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1911D65-3F4C-455C-BA5D-EE146F92E975}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1911D65-3F4C-455C-BA5D-EE146F92E975}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1911D65-3F4C-455C-BA5D-EE146F92E975}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E84B27D-1A80-42D1-AB40-B80F23C1B8A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E84B27D-1A80-42D1-AB40-B80F23C1B8A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E84B27D-1A80-42D1-AB40-B80F23C1B8A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E84B27D-1A80-42D1-AB40-B80F23C1B8A7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6278B76B-0D32-4287-AEFD-DA4EE744DB29}
+	EndGlobalSection
+EndGlobal
