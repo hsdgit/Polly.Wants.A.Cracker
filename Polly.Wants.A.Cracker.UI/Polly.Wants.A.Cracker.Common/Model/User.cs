@@ -1,6 +1,12 @@
-﻿namespace Polly.Wants.A.Cracker.Common.Model
+﻿using System.Collections.Generic;
+
+namespace Polly.Wants.A.Cracker.Common.Model
 {
 
+    public class UserPayload : ErrorPayload
+    {
+        public IEnumerable<User> Users { get; set; }
+    }
 
     public class User
     {

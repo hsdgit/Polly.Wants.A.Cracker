@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
+using Polly.CircuitBreaker;
+using Polly.Fallback;
 using Polly.Wants.A.Cracker.Common.Model;
 using Polly.Wants.A.Cracker.Common.Services;
+using Polly.Wrap;
 using Serilog;
 
 namespace Polly.Wants.A.Cracker.UI
@@ -22,19 +26,66 @@ namespace Polly.Wants.A.Cracker.UI
                 .CreateLogger();
 
             _circuitBreakerPolicy = Policy.Handle<HttpRequestException>()
-                .Or<NullReferenceException>()
-                .CircuitBreaker(5, TimeSpan.FromSeconds(10));
+                .CircuitBreaker(
+                   // number of exceptions before breaking circuit
+                   5,
+                   // time circuit opened before retry
+                   TimeSpan.FromMinutes(1),
+                   (exception, duration) =>
+                   {
+                       // on circuit opened
+                       Log.Information("Circuit breaker opened");
+                   },
+                   () =>
+                   {
+                       // on circuit closed
+                       Log.Information("Circuit breaker reset");
+                   });
 
 
 
             _retryPolicy = Policy.Handle<HttpRequestException>()
-                .Or<NullReferenceException>()
-                .RetryForever(ex => Log.Information("Retrying..."));
+                .WaitAndRetry(
+                    // number of retries
+                    4,
+                    // exponential backofff
+                    retryAttempt => TimeSpan.FromSeconds(retryAttempt),
+                    // on retry
+                    (exception, timeSpan, retryCount, context) =>
+                    {
+                        var msg = $"Retry {retryCount} implemented with Polly's RetryPolicy " +
+                            $"of {context.PolicyKey} " +
+                            $"at {context.ExecutionKey}";
+                        Log.Warning(msg);
+                    });
 
-            LoopCalls();
+            // Define a fallback policy: provide a nice substitute message to the user, if we found the circuit was broken.
+            FallbackPolicy<UserPayload> fallbackForCircuitBreaker = Policy<UserPayload>
+                .Handle<BrokenCircuitException>()
+                .Fallback(
+                    fallbackValue: new UserPayload { Users = null, ErrorMessage = "Please try again later [Fallback for broken circuit]" },
+                    onFallback: b =>
+                    {
+                        Log.Information("Fallback catches failed with: " + b.Exception.Message, ConsoleColor.Red);                    }
+                );
+
+            // Define a fallback policy: provide a substitute string to the user, for any exception.
+            FallbackPolicy<UserPayload> fallbackForAnyException = Policy<UserPayload>
+                .Handle<Exception>()
+                .Fallback(
+                    fallbackAction: /* Demonstrates fallback action/func syntax */ () => { return new UserPayload { Users = null, ErrorMessage = "Please try again later [Fallback for any exception]" }; },
+                    onFallback: e =>
+                    {
+                        Log.Information("Fallback catches failed with: " + e.Exception.Message, ConsoleColor.DarkMagenta);
+                    }
+);
+
+            PolicyWrap myResilienceStrategy = Policy.Wrap(_retryPolicy, _circuitBreakerPolicy);
+            PolicyWrap<UserPayload> policyWrap = fallbackForAnyException.Wrap(fallbackForCircuitBreaker.Wrap(myResilienceStrategy));
+            LoopCalls(policyWrap);
         }
 
-        static void LoopCalls()
+        static void LoopCalls(PolicyWrap<UserPayload> policyWrap)
         {
             while (true)
             {
@@ -42,13 +93,13 @@ namespace Polly.Wants.A.Cracker.UI
                 {
                     Log.Information("Calling api to get values...");
 
-                    _retryPolicy.Wrap(_circuitBreakerPolicy)
+                    policyWrap
                         .Execute(() =>
                         {
                             // substitute in IoC in real world scenario
                             IJsonService service = new JsonService(new HttpClient());
 
-                            var users = service.GetUsersWithExceptions(DateTime.Now.Second);
+                            var users = service.GetUsersWithExceptions(4);
 
                             if (users == null)
                             {
@@ -59,6 +110,8 @@ namespace Polly.Wants.A.Cracker.UI
                             {
                                 Log.Information("User Name : {Name}", user.name);
                             }
+
+                            return new UserPayload { Users = users };
 
                         });
 
