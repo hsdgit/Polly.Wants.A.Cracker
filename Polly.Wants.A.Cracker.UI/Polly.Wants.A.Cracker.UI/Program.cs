@@ -99,7 +99,8 @@ namespace Polly.Wants.A.Cracker.UI
                             // substitute in IoC in real world scenario
                             IJsonService service = new JsonService(new HttpClient());
 
-                            var users = service.GetUsersWithExceptions(4);
+                            //change the parameter here to 4 to trigger errors every time.
+                            var users = service.GetUsersWithExceptions(DateTime.Now.Second);
 
                             if (users == null)
                             {
